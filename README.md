@@ -92,4 +92,4 @@ Note that Secure Boot requires UEFI boot to be enabled. The tool will prevent en
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://opensource.org/license/mit) for details.
+This project is licensed under the [MIT License](./LICENSE).
