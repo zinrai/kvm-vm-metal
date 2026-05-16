@@ -1,94 +1,68 @@
-# kvm-vm-bare
+# kvm-vm-metal
 
-`kvm-vm-bare` is a command-line tool that simplifies the process of creating empty virtual machines using KVM (Kernel-based Virtual Machine). This tool is designed for users who need to quickly set up base VMs without an operating system installed.
+Defines empty KVM virtual machines that imitate the hardware shape of a physical server.
 
-## Features
+## What it does
 
-- Create empty VMs with customizable resources
-- Support for both BIOS and UEFI boot modes
-- Optional Secure Boot support for UEFI
-- Flexible network configuration
+Creates empty libvirt domains for PXE-based OS installation testing.
 
 ## Prerequisites
 
-Before using this tool, ensure you have the following installed on your system:
-
 - sudo
-- virsh
 - qemu-img
+- virsh
 - virt-install
-- ovmf ( for UEFI boot support )
-
-## Installation
-
-Build the tool:
-
-```
-$ go build
-```
+- ovmf
 
 ## Usage
 
-The basic syntax for using the tool is:
-
 ```
-$ ./kvm-vm-bare [OPTIONS] VM_NAME
+$ kvm-vm-metal [OPTIONS] -nic ... -disk ... VM_NAME
 ```
 
-### Examples:
+At least one `-nic` and one `-disk` are required. Both flags are repeatable.
 
-Create a VM with default settings ( BIOS boot ):
+### NIC specification
 
-```
-$ ./kvm-vm-bare myvm
-```
+`-nic bridge=NAME[,model=MODEL]`
 
-Create a VM with custom resources:
+- `bridge` (required): host bridge name
+- `model` (default `e1000e`): NIC model. Examples: `e1000e`, `e1000`, `igb`, `virtio`, `rtl8139`
 
-```
-$ ./kvm-vm-bare -size 30G -memory 2048 -vcpus 2 myvm
-```
+### Disk specification
 
-Create a VM with UEFI boot:
+`-disk size=SIZE[,bus=BUS]`
 
-```
-$ ./kvm-vm-bare -efi myvm
-```
+- `size` (required): disk size accepted by `qemu-img create` (e.g. `20G`, `500G`)
+- `bus` (default `sata`): disk bus. Examples: `sata`, `virtio`, `scsi`
 
-Create a VM with UEFI Secure Boot enabled:
+Disk image files are created under `/var/lib/libvirt/images/` as `VM_NAME-disk0.qcow2`, `VM_NAME-disk1.qcow2`, and so on.
 
-```
-$ ./kvm-vm-bare -efi -secureboot myvm
-```
+### Examples
 
-Create a VM with a specific bridge network:
+Minimal VM with one NIC and one disk:
 
 ```
-$ ./kvm-vm-bare -network bridge=br0 myvm
+$ kvm-vm-metal -nic bridge=br0 -disk size=50G node-01
 ```
 
-## Network Configuration
+Two NICs on different bridges and three disks:
 
-You can specify the network configuration using the `-network` option. The value should be in the format accepted by virt-install's --network option. For example:
+```
+$ kvm-vm-metal \
+    -nic bridge=br-prov \
+    -nic bridge=br-data \
+    -disk size=20G \
+    -disk size=500G \
+    -disk size=500G \
+    node-01
+```
 
-- `bridge=BRIDGE`: Connect to a bridge device
-- `network=NAME`: Connect to a virtual network
+Custom CPU and memory:
 
-## Boot Configuration
-
-The tool supports different boot modes:
-
-- Default BIOS boot: No additional flags required
-- UEFI boot: Use the `-efi` flag
-- UEFI Secure Boot: Use both `-efi` and `-secureboot` flags
-
-Note that Secure Boot requires UEFI boot to be enabled. The tool will prevent enabling Secure Boot without UEFI.
-
-## Notes
-
-- This tool requires sudo privileges to run as it needs to create disk images and define VMs.
-- The created VMs are empty and do not have an operating system installed. You'll need to manually install an OS after creation.
-- UEFI Secure Boot requires appropriate OVMF firmware support on your system.
+```
+$ kvm-vm-metal -memory 4096 -vcpus 4 -nic bridge=br0 -disk size=100G node-03
+```
 
 ## License
 
