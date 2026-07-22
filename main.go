@@ -9,8 +9,6 @@ import (
 )
 
 func main() {
-	checkRequiredCommands()
-
 	var nics NICList
 	var disks DiskList
 
@@ -18,6 +16,7 @@ func main() {
 	flag.Var(&disks, "disk", "Disk specification (repeatable): size=SIZE[,bus=BUS]")
 	memory := flag.Int("memory", 1024, "Memory in MB")
 	vcpus := flag.Int("vcpus", 1, "Number of virtual CPUs")
+	showVersion := flag.Bool("version", false, "Print version information and exit")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS] -nic ... -disk ... VM_NAME\n\nOptions:\n", os.Args[0])
@@ -25,6 +24,13 @@ func main() {
 	}
 
 	flag.Parse()
+
+	if *showVersion {
+		printVersion()
+		os.Exit(0)
+	}
+
+	checkRequiredCommands()
 
 	args := flag.Args()
 	if len(args) != 1 {
